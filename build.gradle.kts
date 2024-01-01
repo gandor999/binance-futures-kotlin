@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("io.github.binance:binance-futures-connector-java:3.0.3")
 }
 
 tasks.test {

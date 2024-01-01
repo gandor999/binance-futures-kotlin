@@ -1,7 +1,20 @@
-fun main(args: Array<String>) {
-    println("Hello World!")
+import com.binance.connector.futures.client.impl.UMFuturesClientImpl
+import secrets.BinanceSecrets
+import java.io.File
+import java.util.LinkedHashMap
 
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-    println("Program arguments: ${args.joinToString()}")
+fun main(args: Array<String>) {
+
+    val parameter = LinkedHashMap<String, Any>()
+    parameter["symbol"] = "BTCUSDT"
+
+    val client = UMFuturesClientImpl(BinanceSecrets.getAPIKey(), BinanceSecrets.getAPISecret())
+    val exchangeInfo = client.market().exchangeInfo()
+    val ticker24H = client.market().ticker24H(parameter)
+
+    val exchangeInfoLog = File("logs/exchange-info.json")
+    val ticker24HLog = File("logs/ticker-24H.json")
+
+    exchangeInfoLog.writeText(exchangeInfo)
+    ticker24HLog.writeText(ticker24H)
 }
