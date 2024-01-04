@@ -20,3 +20,10 @@ data class FuturesAccountBalance(
     val marginAvailable: Boolean,
     val updateTime: Long
 )
+
+@Serializable
+data class TickerSymbol(
+    val symbol: String,
+    val price: String,
+    val time: Long,
+)
