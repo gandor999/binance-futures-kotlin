@@ -25,6 +25,16 @@ fun setProspects(client: UMFuturesClientImpl, setProspectsArgs: SetProspectsArgs
             client.account().changeMarginType(setProspectsArgs.marginParam)
         }.also { handleError(it) }
     }
+fun filter(key: String, value: Any): LinkedHashMap<String?, Any?> {
+    return LinkedHashMap<String?, Any?>().also {
+        it[key] = value
+    }
+}
+
+fun filter(filterLambda: (LinkedHashMap<String?, Any?>) -> Unit): LinkedHashMap<String?, Any?> {
+    return LinkedHashMap<String?, Any?>().also(filterLambda)
+}
+
 
     launch {
         runCatching {
