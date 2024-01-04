@@ -59,3 +59,10 @@ data class MarkPrice(
     val nextFundingTime: Long,
     val time: Long
 )
+
+@Serializable
+data class CommissionRates(
+    val symbol: String,
+    val makerCommissionRate: String,
+    val takerCommissionRate: String
+)
