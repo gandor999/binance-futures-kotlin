@@ -61,6 +61,17 @@ data class MarkPrice(
 )
 
 @Serializable
+data class OrderBookTicker(
+    val symbol: String,
+    val bidPrice: String,
+    val bidQty: String,
+    val askPrice: String,
+    val askQty: String,
+    val time: Long,
+    val lastUpdateId: Long
+)
+
+@Serializable
 data class CommissionRates(
     val symbol: String,
     val makerCommissionRate: String,
