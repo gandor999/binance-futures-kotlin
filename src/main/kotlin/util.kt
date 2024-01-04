@@ -112,7 +112,7 @@ fun calculateQuantityOrder(calculateQuantityOrder: CalculateQuantityOrderArgs): 
         availableCoinBalance
     ) = calculateQuantityOrder
 
-    if (availableCoinBalance != null) return ((availableCoinBalance * (percentage / 100) * .9996) / ((tickerHighPrice * (1 + commissionTake) / leverage) + (abs(
+    if (availableCoinBalance != null) return ((availableCoinBalance * (percentage / 100) * (1 - commissionTake)) / ((tickerHighPrice * (1 + commissionTake) / leverage) + (abs(
         min(
             0.00,
             1 * (markPrice - tickerHighPrice)
