@@ -93,11 +93,28 @@ fun getDepsForQuantityCalculation(
         }
     )
 
-    return availableCoinBalance?.times(getQuantityOrderArgs.leverageParam["leverage"] as Int)
-        ?.times(getQuantityOrderArgs.regularFee)
     tasks.awaitAll()
 
     return@runBlocking QuantityDeps(markPrice, tickerHighPrice, availableCoinBalance, commissionTake)
 }
 
+fun calculateQuantityOrder(calculateQuantityOrder: CalculateQuantityOrderArgs): Double {
+    // Reminder: commissionTake will be commissionMake if Sell open order
+    val (
+        leverage,
+        commissionTake,
+        percentage,
+        markPrice,
+        tickerHighPrice,
+        availableCoinBalance
+    ) = calculateQuantityOrder
+
+    if (availableCoinBalance != null) return ((availableCoinBalance * (percentage / 100) * .9996) / ((tickerHighPrice * (1 + commissionTake) / leverage) + (abs(
+        min(
+            0.00,
+            1 * (markPrice - tickerHighPrice)
+        )
+    )))).toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
+
+    return 0.00
 }
