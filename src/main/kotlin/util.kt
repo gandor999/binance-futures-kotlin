@@ -1,20 +1,23 @@
 import com.binance.connector.futures.client.impl.UMFuturesClientImpl
-import data.dto.GetQuantityOrderArgs
+import data.dto.CalculateQuantityOrderArgs
+import data.dto.DepsForQuantityCalculationArgs
+import data.dto.QuantityDeps
 import data.dto.SetProspectsArgs
-import data.models.BinanceException
-import data.models.FuturesAccountBalance
-import kotlinx.coroutines.launch
+import data.models.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import java.math.RoundingMode
+import kotlin.math.abs
+import kotlin.math.min
 
-fun handleError(runCatchObject: Result<String>) {
+fun handleBinanceError(runCatchObject: Result<String>) {
     runCatchObject.onFailure { error ->
         val deserializedError = Json.decodeFromString<BinanceException>(error.message.toString())
 
         when (deserializedError.code) {
             -4046 -> println(deserializedError.msg)
-
-            else -> throw Exception(error.message)
         }
     }
 }
