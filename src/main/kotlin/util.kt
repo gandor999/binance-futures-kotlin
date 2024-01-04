@@ -51,11 +51,53 @@ fun setRiskVariables(client: UMFuturesClientImpl, setProspectsArgs: SetProspects
     tasks.awaitAll()
 }
 
-fun getQuantityOrder(client: UMFuturesClientImpl, getQuantityOrderArgs: GetQuantityOrderArgs): Double? {
-    val availableCoinBalance = Json.decodeFromString<List<FuturesAccountBalance>>(
-        client.account().futuresAccountBalance(LinkedHashMap())
-    ).find { it.asset == getQuantityOrderArgs.futuresAccountBalanceParam["asset"] }?.availableBalance?.toDouble()
+fun getDepsForQuantityCalculation(
+    client: UMFuturesClientImpl,
+    depsForQuantityCalculationArgs: DepsForQuantityCalculationArgs
+): QuantityDeps = runBlocking {
+    val (
+        assetToWorkWith,
+        symbol
+    ) = depsForQuantityCalculationArgs
+
+    var availableCoinBalance: Double? = 0.00
+    var markPrice = 0.00
+    var tickerHighPrice = 0.00
+    var commissionTake = 0.00
+
+    val tasks = listOf(
+        async {
+            availableCoinBalance = Json.decodeFromString<List<FuturesAccountBalance>>(
+                client.account().futuresAccountBalance(LinkedHashMap())
+            ).find { it.asset == assetToWorkWith }?.availableBalance?.toDouble() // can't seem to filter using the api
+        },
+
+        async {
+            markPrice =
+                Json.decodeFromString<MarkPrice>(
+                    client.market().markPrice(filter("symbol", symbol))
+                ).markPrice.toDouble()
+        },
+
+        async {
+            tickerHighPrice =
+                Json.decodeFromString<Ticker24H>(
+                    client.market().ticker24H(filter("symbol", symbol))
+                ).highPrice.toDouble()
+        },
+
+        async {
+            commissionTake = Json.decodeFromString<CommissionRates>(
+                client.account().getCommissionRate(filter("symbol", symbol))
+            ).takerCommissionRate.toDouble()
+        }
+    )
 
     return availableCoinBalance?.times(getQuantityOrderArgs.leverageParam["leverage"] as Int)
         ?.times(getQuantityOrderArgs.regularFee)
+    tasks.awaitAll()
+
+    return@runBlocking QuantityDeps(markPrice, tickerHighPrice, availableCoinBalance, commissionTake)
+}
+
 }
