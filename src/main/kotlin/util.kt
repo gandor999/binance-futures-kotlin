@@ -103,6 +103,12 @@ fun getDepsForQuantityCalculation(
 
 fun calculateQuantityOrder(calculateQuantityOrder: CalculateQuantityOrderArgs): Double {
     // Reminder: commissionTake will be commissionMake if Sell open order
+    // How we got this formula: https://www.binance.com/en/support/faq/how-to-calculate-cost-required-to-open-a-position-in-perpetual-futures-contracts-87fa7ee33b574f7084d42bd2ce2e463b
+    // Derive the formula in such a way that we want to find the "number of contracts" instead of the "cost" to get the closest amount of btc that we can use to open future trade
+
+    // Take note that the formula below was tweaked a little so that it will only approach the maximum cost a little distance, the value of that distance is not very consistent, but it should be enough to make an open trade without much of any difference to the amount that a person would like to buy or sell with
+    // Particularly, instead of using the order book "askPrice" we use the "tickerHighPrice" to get a little bit lower than the actual maximum cost in binance
+
     val (
         leverage,
         commissionTake,
