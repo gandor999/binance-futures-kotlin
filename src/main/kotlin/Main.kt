@@ -1,13 +1,36 @@
+import com.binance.connector.futures.client.impl.UMFuturesClientImpl
+import data.client.UMFutures
 import data.configs.Config
-import data.dto.GetQuantityOrderArgs
-import data.dto.SetProspectsArgs
-import data.singletons.UMFutures
+import data.dto.CalculateQuantityOrderArgs
+import data.dto.DepsForQuantityCalculationArgs
+import data.dto.SetRiskVariablesArgs
 
-fun main(args: Array<String>) {
+fun makeNewOrder(client: UMFuturesClientImpl, quantity: Double) {
+
+}
+
+fun main() {
     val client = UMFutures.client
 
-    setProspects(client, SetProspectsArgs(Config.leverage, Config.margin))
-    val quantity = getQuantityOrder(client, GetQuantityOrderArgs(Config.futuresAccountBalance, Config.leverage, Config.regularFee))
+    setRiskVariables(client, SetRiskVariablesArgs(Config.leverage, Config.marginType, Config.symbol))
 
+    val (
+        markPrice,
+        tickerHighPrice,
+        availableCoinBalance,
+        commissionTake
+    ) = getDepsForQuantityCalculation(client, DepsForQuantityCalculationArgs(Config.assetToWorkWith, Config.symbol))
 
+    val qtyCost = calculateQuantityOrder(
+        CalculateQuantityOrderArgs(
+            Config.leverage,
+            commissionTake,
+            100.00,
+            markPrice,
+            tickerHighPrice,
+            availableCoinBalance
+        )
+    )
+
+    print(qtyCost)
 }
