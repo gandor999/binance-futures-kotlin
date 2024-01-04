@@ -47,3 +47,15 @@ data class Ticker24H(
     val lastId: Long,
     val count: Int
 )
+
+@Serializable
+data class MarkPrice(
+    val symbol: String,
+    val markPrice: String,
+    val indexPrice: String,
+    val estimatedSettlePrice: String,
+    val lastFundingRate: String,
+    val interestRate: String,
+    val nextFundingTime: Long,
+    val time: Long
+)
