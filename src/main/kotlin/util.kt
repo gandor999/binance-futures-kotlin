@@ -2,7 +2,7 @@ import com.binance.connector.futures.client.impl.UMFuturesClientImpl
 import data.dto.CalculateQuantityOrderArgs
 import data.dto.DepsForQuantityCalculationArgs
 import data.dto.QuantityDeps
-import data.dto.SetProspectsArgs
+import data.dto.SetRiskVariablesArgs
 import data.models.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -32,7 +32,7 @@ fun filter(filterLambda: (LinkedHashMap<String?, Any?>) -> Unit): LinkedHashMap<
     return LinkedHashMap<String?, Any?>().also(filterLambda)
 }
 
-fun setRiskVariables(client: UMFuturesClientImpl, setProspectsArgs: SetProspectsArgs) = runBlocking {
+fun setRiskVariables(client: UMFuturesClientImpl, setProspectsArgs: SetRiskVariablesArgs) = runBlocking {
     val tasks = listOf(
         async {
             runCatching {
