@@ -19,12 +19,6 @@ fun handleError(runCatchObject: Result<String>) {
     }
 }
 
-fun setProspects(client: UMFuturesClientImpl, setProspectsArgs: SetProspectsArgs) = runBlocking {
-    launch {
-        runCatching {
-            client.account().changeMarginType(setProspectsArgs.marginParam)
-        }.also { handleError(it) }
-    }
 fun filter(key: String, value: Any): LinkedHashMap<String?, Any?> {
     return LinkedHashMap<String?, Any?>().also {
         it[key] = value
@@ -35,12 +29,26 @@ fun filter(filterLambda: (LinkedHashMap<String?, Any?>) -> Unit): LinkedHashMap<
     return LinkedHashMap<String?, Any?>().also(filterLambda)
 }
 
+fun setRiskVariables(client: UMFuturesClientImpl, setProspectsArgs: SetProspectsArgs) = runBlocking {
+    val tasks = listOf(
+        async {
+            runCatching {
+                client.account().changeMarginType(filter {
+                    it["symbol"] = setProspectsArgs.symbol
+                    it["marginType"] = setProspectsArgs.marginType
+                })
+            }.also { handleBinanceError(it) }
+        },
 
-    launch {
-        runCatching {
-            client.account().changeInitialLeverage(setProspectsArgs.leverageParam)
-        }.also { handleError(it) }
-    }
+        async {
+            client.account().changeInitialLeverage(filter {
+                it["symbol"] = setProspectsArgs.symbol
+                it["leverage"] = setProspectsArgs.leverage
+            })
+        }
+    )
+
+    tasks.awaitAll()
 }
 
 fun getQuantityOrder(client: UMFuturesClientImpl, getQuantityOrderArgs: GetQuantityOrderArgs): Double? {
