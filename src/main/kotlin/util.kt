@@ -32,21 +32,29 @@ fun filter(filterLambda: (LinkedHashMap<String?, Any?>) -> Unit): LinkedHashMap<
     return LinkedHashMap<String?, Any?>().also(filterLambda)
 }
 
-fun setRiskVariables(client: UMFuturesClientImpl, setProspectsArgs: SetRiskVariablesArgs) = runBlocking {
+/**
+ *  Sets the leverage level and the margin type that you would like to work on
+ *
+ *  @param  client the USD-M Futures client
+ *  @param  setRiskVariablesArgs the args to be passed to this function as a data class object
+ *
+ *  @author Geodor A. Ruales
+ */
+fun setRiskVariables(client: UMFuturesClientImpl, setRiskVariablesArgs: SetRiskVariablesArgs) = runBlocking {
     val tasks = listOf(
         async {
             runCatching {
                 client.account().changeMarginType(filter {
-                    it["symbol"] = setProspectsArgs.symbol
-                    it["marginType"] = setProspectsArgs.marginType
+                    it["symbol"] = setRiskVariablesArgs.symbol
+                    it["marginType"] = setRiskVariablesArgs.marginType
                 })
             }.also { handleBinanceError(it) }
         },
 
         async {
             client.account().changeInitialLeverage(filter {
-                it["symbol"] = setProspectsArgs.symbol
-                it["leverage"] = setProspectsArgs.leverage
+                it["symbol"] = setRiskVariablesArgs.symbol
+                it["leverage"] = setRiskVariablesArgs.leverage
             })
         }
     )
@@ -54,6 +62,14 @@ fun setRiskVariables(client: UMFuturesClientImpl, setProspectsArgs: SetRiskVaria
     tasks.awaitAll()
 }
 
+/**
+ *  Gets the dependencies needed for the calculation of the quantity that we can open a futures order
+ *
+ *  @param  client the USD-M Futures client
+ *  @param  depsForQuantityCalculationArgs the args to be passed to this function as a data class object
+ *
+ *  @author Geodor A. Ruales
+ */
 fun getDepsForQuantityCalculation(
     client: UMFuturesClientImpl,
     depsForQuantityCalculationArgs: DepsForQuantityCalculationArgs
@@ -101,6 +117,13 @@ fun getDepsForQuantityCalculation(
     return@runBlocking QuantityDeps(markPrice, tickerHighPrice, availableCoinBalance, commissionTake)
 }
 
+/**
+ *  Calculates the quantity of how much we can open a futures order
+ *
+ *  @param  calculateQuantityOrder the variables that we get from getDepsForQuantityCalculation()
+ *
+ *  @author Geodor A. Ruales
+ */
 fun calculateQuantityOrder(calculateQuantityOrder: CalculateQuantityOrderArgs): Double {
     // Reminder: commissionTake will be commissionMake if Sell open order
     // How we got this formula: https://www.binance.com/en/support/faq/how-to-calculate-cost-required-to-open-a-position-in-perpetual-futures-contracts-87fa7ee33b574f7084d42bd2ce2e463b
