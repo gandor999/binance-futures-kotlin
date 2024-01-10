@@ -1,5 +1,7 @@
 package data.dto
 
+// TODO: put descriptions for the params written here
+
 data class CalculateQuantityOrderArgs(
     val leverage: Int,
     val commissionTake: Double,
