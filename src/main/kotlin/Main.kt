@@ -1,13 +1,11 @@
-import com.binance.connector.futures.client.impl.UMFuturesClientImpl
+
 import data.client.UMFutures
 import data.configs.Config
 import data.dto.CalculateQuantityOrderArgs
 import data.dto.DepsForQuantityCalculationArgs
+import data.dto.MakeNewOrderArgs
 import data.dto.SetRiskVariablesArgs
 
-fun makeNewOrder(client: UMFuturesClientImpl, quantity: Double) {
-
-}
 
 fun main() {
     val client = UMFutures.client
@@ -32,5 +30,12 @@ fun main() {
         )
     )
 
-    print(qtyCost)
+    // TODO: make strategy for when to buy or sell
+
+    val mostRecentOrderMade = makeNewOrder(
+        client,
+        MakeNewOrderArgs(Config.symbol, "SELL", "MARKET", qtyCost, closePosition = true)
+    )
+
+    saveToCache("mostRecentOrderMade.json", mostRecentOrderMade)
 }

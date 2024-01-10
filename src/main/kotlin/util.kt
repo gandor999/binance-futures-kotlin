@@ -1,14 +1,14 @@
 import com.binance.connector.futures.client.impl.UMFuturesClientImpl
-import data.dto.CalculateQuantityOrderArgs
-import data.dto.DepsForQuantityCalculationArgs
-import data.dto.QuantityDeps
-import data.dto.SetRiskVariablesArgs
-import data.models.*
+import data.dto.*
+import data.schemas.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import java.io.File
 import java.math.RoundingMode
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -20,6 +20,22 @@ fun handleBinanceError(runCatchObject: Result<String>) {
             -4046 -> println(deserializedError.msg)
         }
     }
+}
+
+fun saveToCache(filename: String, content: String) {
+    val cachePath = Paths.get("src/main/kotlin/data/cache")
+    if (!Files.isDirectory(cachePath)) Files.createDirectory(cachePath)
+
+    val cacheFile = File("src/main/kotlin/data/cache/$filename")
+
+    if (!cacheFile.exists()) {
+        cacheFile.createNewFile()
+        cacheFile.writeText(content)
+    } else cacheFile.writeText(content)
+}
+
+fun readCache(filename: String): String {
+    return File(filename).readText(Charsets.UTF_8)
 }
 
 fun filter(key: String, value: Any): LinkedHashMap<String?, Any?> {
@@ -149,4 +165,43 @@ fun calculateQuantityOrder(calculateQuantityOrder: CalculateQuantityOrderArgs): 
     )))).toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
 
     return 0.00
+}
+
+/**
+ *  Makes a new futures order
+ *
+ *  @param  makeNewOrderArgs the args to be passed to this function as a data class object
+ *
+ *  @author Geodor A. Ruales
+ */
+fun makeNewOrder(client: UMFuturesClientImpl, makeNewOrderArgs: MakeNewOrderArgs): String {
+    val (
+        symbol,
+        side,
+        type,
+        quantity,
+        closePosition
+    ) = makeNewOrderArgs
+
+    return client.account().newOrder(filter {
+        val positionInformation = Json.decodeFromString<List<PositionInformation>>(
+            client.account().positionInformation(filter { param ->
+                param["symbol"] = symbol
+            })
+        )
+
+        it["symbol"] = symbol
+        it["side"] = side
+        it["type"] = type
+        it["quantity"] = quantity
+
+        if (closePosition && positionInformation.isNotEmpty()) {
+            it["quantity"] =
+                positionInformation[0].positionAmt.toDouble() // TODO: add functionality to choose which position to close
+            it["newOrderRespType"] = "RESULT"
+            it["placeType"] = "position"
+            it["positionSide"] = "BOTH"
+            it["reduceOnly"] = true
+        }
+    })
 }
